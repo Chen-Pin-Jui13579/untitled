@@ -1,4 +1,4 @@
-#include "widget.h"
+﻿#include "widget.h"
 #include "ui_widget.h"
 #include <QFile>
 #include <QFileDialog>
@@ -78,3 +78,36 @@ void Widget::on_pushButton_2_clicked()
 
     CbWrite(fileName, saveStr);
 }
+void Widget::on_pushButton_clicked()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, "匯入通訊錄", ".", "CSV Files (*.csv)");
+    if (fileName.isEmpty()) {
+        return;
+    }
+
+    QFile inFile(fileName);
+    if (!inFile.open(QFile::ReadOnly | QFile::Text)) {
+        qDebug() << "無法開啟檔案進行讀取";
+        return;
+    }
+
+    QTextStream in(&inFile);
+    in.setEncoding(QStringConverter::System);
+
+    while (!in.atEnd()) {
+        QString line = in.readLine();
+        if (line.trimmed().isEmpty()) continue;
+
+        QStringList fields = line.split(",");
+
+        int row = ui->tableWidget->rowCount();
+        ui->tableWidget->insertRow(row);
+
+        for (int i = 0; i < fields.size() && i < 4; ++i) {
+            QTableWidgetItem *item = new QTableWidgetItem(fields[i]);
+            ui->tableWidget->setItem(row, i, item);
+        }
+    }
+    inFile.close();
+}
+
